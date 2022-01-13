@@ -1,6 +1,6 @@
 Compilation instructions:
 
-1. Make sure you have Maven on your computer:
+1. Make sure you have Maven installed on your computer:
 	- download from here: https://maven.apache.org/download.cgi.
 	- make sure to set up an Environment variable (windows users).
 	- a short guide in here: https://maven.apache.org/guides/getting-started/windows-prerequisites.html
