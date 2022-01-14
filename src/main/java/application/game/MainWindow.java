@@ -8,14 +8,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
+
+import application.dao.ConfigureManager;
+import application.dao.DataOutputHandler;
+import application.dao.DataType;
+import application.dao.StimulusSender;
 import application.gui.LettersPanel;
 import application.gui.Panel;
-import application.util.ConfigureManager;
-import application.util.DataOutputHandler;
-import application.util.DataType;
 import application.util.ScreenGenerator;
 import application.util.ScreenType;
-import application.util.StimulusSender;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -31,7 +32,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class Controller {
+public class MainWindow extends StackPane {
 	private int totalGames;
 	private final double width;
 	private final double height;	
@@ -40,24 +41,19 @@ public class Controller {
 	private long interactedMilliTime;
 	private Timeline timer;
 	private Panel currentScreen;
-	private StackPane panel;
-	// main GUI component
 	private Stage stage;	
-	// represent the user's answer (right/wrong)
-	private boolean answer;
-	// represent all configuration values read from config.json
+	private boolean userAnswer;
 	private Map<String, Object> configValues;
-	private StimulusSender sender;
+	private StimulusSender stimSender;
 	private final DataOutputHandler dataHandler;
 	private final ScreenGenerator screenGenerator;
-	private String[] possibleStrings;
 	
 	// blink params
 	private Color color;
 	private boolean isBlack;
 	private int blinkCounter;
 	
-	public Controller(Stage stage, String configFileName, String dataFileName) throws FileNotFoundException {
+	public MainWindow(Stage stage, String configFileName, String dataFileName) throws FileNotFoundException {
 		this.stage = stage;
 		this.dataHandler = new DataOutputHandler(dataFileName);
 
@@ -65,17 +61,14 @@ public class Controller {
 			// reading configuration values
 			configValues = (new ConfigureManager(configFileName)).getProperties();					
 			totalGames = (int)configValues.get("number_of_games");
-			sender = new StimulusSender((String)configValues.get("host"), (int)configValues.get("port"));	
-			sender.open();			
+			stimSender = new StimulusSender((String)configValues.get("host"), (int)configValues.get("port"));	
+			stimSender.open();			
 		} catch (FileNotFoundException fof) {
 			Logger.error(fof);
 			throw fof;
 		} catch (IOException io) {
 			Logger.error(io);
-		}
-		possibleStrings = getPossibleStrings();
-		if(possibleStrings == null)
-			throw new NullPointerException("Couldn't read possible_strings from " + configFileName);
+		}	
 		
 		var screenDim = Screen.getPrimary().getBounds();
 		width = screenDim.getWidth() / 2;
@@ -91,13 +84,13 @@ public class Controller {
 				interactedMilliTime = System.currentTimeMillis();	//get the time of user interaction
 				switch(e.getButton()) {
 				case PRIMARY:
-					answer = ((LettersPanel)currentScreen).getMiddleLetter() == 'V' ? true : false;
+					userAnswer = ((LettersPanel)currentScreen).getMiddleLetter() == 'V' ? true : false;
 					break;
 				case SECONDARY:
-					answer = ((LettersPanel)currentScreen).getMiddleLetter() == 'U' ? true : false;
+					userAnswer = ((LettersPanel)currentScreen).getMiddleLetter() == 'U' ? true : false;
 					break;
 				default:
-					answer = false;
+					userAnswer = false;
 					break;
 				}
 				showNext();
@@ -123,22 +116,21 @@ public class Controller {
 	public void show() {
 		Logger.info("Constructing main screen");
 		gamesCounter = 0;
-		answer = false;
+		userAnswer = false;
 		color = Color.BLACK;
 		isBlack = true;
-		
-		panel = new StackPane();
+
 		currentScreen = screenGenerator.createCrossScreen(Color.rgb(220, 220, 220), 40, 8);
-		panel.getChildren().add((Pane)currentScreen);
+		this.getChildren().add((Pane)currentScreen);
 		
-		stage.setScene(new Scene(panel, width, height, color));
+		stage.setScene(new Scene(this, width, height, color));
 		stage.setMaximized(true);
 		stage.setResizable(false);
 		stage.centerOnScreen();
-		stage.show();
 		writeCriteria();
 		
 		createTimer(0.5 * 1000);
+		stage.show();
 	}
 	
 	private void showNext() {
@@ -146,7 +138,7 @@ public class Controller {
 		case Cross:
 			saveResults(getData(), false);
 			
-			currentScreen = screenGenerator.createLettersScreen(possibleStrings);
+			currentScreen = screenGenerator.createLettersScreen(getPossibleStrings());
 			displayedMilliTime = System.currentTimeMillis();
 			interactedMilliTime = 0;
 			createTimer(0.8 * 1000);
@@ -158,8 +150,8 @@ public class Controller {
 			createTimer(0.2 * 1000);
 			
 			// blink params
-			color = answer ? Color.DARKGREEN : Color.DARKRED;
-			answer = false;
+			color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
+			userAnswer = false;
 			blinkCounter = 0;
 			break;
 		case Blank:
@@ -179,9 +171,9 @@ public class Controller {
 		
 		
 		if(gamesCounter < totalGames) {
-			Logger.info("Switching to " + currentScreen.getType().toString() + " screen");
-			panel.getChildren().clear();
-			panel.getChildren().add((Pane)currentScreen);	
+			Logger.info("Switching to " + currentScreen.getType() + " screen");
+			this.getChildren().clear();
+			this.getChildren().add((Pane)currentScreen);	
 		} else {
 			terminate();			
 		}
@@ -217,8 +209,8 @@ public class Controller {
 		}
 		case Letters -> {
 			yield (gamesCounter + 1) + ","
-					+ (interactedMilliTime == 0 ? "No response" : (interactedMilliTime - displayedMilliTime)) + ","
-					+ ((LettersPanel) currentScreen).getMiddleLetter() + "," + answer;
+					+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
+					+ ((LettersPanel) currentScreen).getMiddleLetter() + "," + userAnswer;
 		}
 		case Blank -> {
 			yield "";
@@ -234,7 +226,7 @@ public class Controller {
 	public void close() {
 		try {
 			dataHandler.close();
-			sender.close();
+			stimSender.close();
 		} catch (IOException e) {
 			Logger.error(e);
 		}
@@ -256,6 +248,11 @@ public class Controller {
 	
 	private String[] getPossibleStrings() {
 		return Stream.of(configValues.get("possible_strings"))
+				.map(potential -> {
+					if(potential == null)
+						throw new NullPointerException("Encountered a problem to load \"possible_strings\"");
+					return potential;
+				})
 				.map(String::valueOf)
 				.map(str -> str.replaceAll("[\\[\\]]", ""))
 				.collect(Collectors.joining())
