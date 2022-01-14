@@ -45,8 +45,6 @@ public class Controller {
 	private Stage stage;	
 	// represent the user's answer (right/wrong)
 	private boolean answer;
-	// the results of each game can be added here. each data object will form one line in the .csv file
-	private StringBuffer data;
 	// represent all configuration values read from config.json
 	private Map<String, Object> configValues;
 	private StimulusSender sender;
@@ -78,8 +76,6 @@ public class Controller {
 		possibleStrings = getPossibleStrings();
 		if(possibleStrings == null)
 			throw new NullPointerException("Couldn't read possible_strings from " + configFileName);
-		
-		data = new StringBuffer();
 		
 		var screenDim = Screen.getPrimary().getBounds();
 		width = screenDim.getWidth() / 2;
@@ -148,8 +144,7 @@ public class Controller {
 	private void showNext() {
 		switch (currentScreen.getType()) {
 		case Cross:
-			data.append(getData());
-			Logger.info("Getting data for [" + currentScreen.getType() + "] screen\n" + "[" + data + "]");
+			saveResults(getData(), false);
 			
 			currentScreen = screenGenerator.createLettersScreen(possibleStrings);
 			displayedMilliTime = System.currentTimeMillis();
@@ -157,8 +152,7 @@ public class Controller {
 			createTimer(0.8 * 1000);
 			break;
 		case Letters:
-			data.append(getData());
-			Logger.info("Getting data for [" + currentScreen.getType() + "] screen\n" + "[" + data + "]");
+			saveResults(getData(), false);
 			
 			currentScreen = screenGenerator.createBlankPanel();
 			createTimer(0.2 * 1000);
@@ -174,9 +168,7 @@ public class Controller {
 			if(shouldBreak)
 				break;
 			
-			data.append(getData());
-			Logger.info("Getting data for [" + currentScreen.getType() + "] screen\n" + "[" + data + "]");
-			saveResults();
+			saveResults(getData(), true);
 			
 			gamesCounter++;
 			
@@ -189,7 +181,7 @@ public class Controller {
 		if(gamesCounter < totalGames) {
 			Logger.info("Switching to " + currentScreen.getType().toString() + " screen");
 			panel.getChildren().clear();
-			panel.getChildren().add((Pane)currentScreen);			
+			panel.getChildren().add((Pane)currentScreen);	
 		} else {
 			terminate();			
 		}
@@ -213,6 +205,7 @@ public class Controller {
 	}
 	
 	private String getData() {
+		Logger.info("Getting data for [" + currentScreen.getType() + "] screen");
 		return switch (currentScreen.getType()) {
 		case Cross -> {
 			var session = "-";
@@ -236,6 +229,11 @@ public class Controller {
 	}
 	
 	public void terminate() {
+		try {
+			dataHandler.close();
+		} catch (IOException e) {
+			Logger.error(e);
+		}
 		Logger.info("Terminating program");
 		Platform.exit();
 	}
@@ -243,15 +241,15 @@ public class Controller {
 	/*
 	 * saving the result for a series of 3 games
 	 */
-	private void saveResults() {
+	private void saveResults(String data, boolean endLine) {
 		try {
-			dataHandler.writeData(data.toString(), DataType.Data);
+			if(endLine)
+				dataHandler.writeLine(data, DataType.Data);
+			else
+				dataHandler.write(data, DataType.Data);
 		} catch (IOException e) {
 			Logger.error(e);
 		}
-
-		// deleting data for the next series of games
-		data.delete(0, data.length());
 	}
 	
 	private String[] getPossibleStrings() {
@@ -273,7 +271,7 @@ public class Controller {
 		
 
 		try {
-			dataHandler.writeData(title, DataType.Title);
+			dataHandler.writeLine(title, DataType.Title);
 		} catch (IOException e) {
 			Logger.error(e);
 		}
