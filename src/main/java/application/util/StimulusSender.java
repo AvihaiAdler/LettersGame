@@ -40,11 +40,16 @@ public class StimulusSender {
 
 	// Close connection
 	public void close() throws IOException {
-		outputStream.flush();
-		Logger.info("Closing data stream");
-		outputStream.close();
-		Logger.info("Cosing socket");
-		clientSocket.close();
+		if(outputStream != null) {
+			outputStream.flush();
+			Logger.info("Closing data stream");
+			outputStream.close();			
+		}
+		
+		if(clientSocket != null) {
+			Logger.info("Cosing socket");
+			clientSocket.close();			
+		}
 	}
 
 	// Send stimulation with a timestamp.

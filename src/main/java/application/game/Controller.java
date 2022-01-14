@@ -216,11 +216,9 @@ public class Controller {
 			yield session + "," + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ",";
 		}
 		case Letters -> {
-			yield Integer.toString(gamesCounter + 1) + ","
-					+ (interactedMilliTime == 0 ? "No response"
-							: Long.toString(interactedMilliTime - displayedMilliTime))
-					+ "," + Character.toString(((LettersPanel) currentScreen).getMiddleLetter()) + ","
-					+ String.valueOf(answer);
+			yield (gamesCounter + 1) + ","
+					+ (interactedMilliTime == 0 ? "No response" : (interactedMilliTime - displayedMilliTime)) + ","
+					+ ((LettersPanel) currentScreen).getMiddleLetter() + "," + answer;
 		}
 		case Blank -> {
 			yield "";
@@ -229,13 +227,17 @@ public class Controller {
 	}
 	
 	public void terminate() {
+		Logger.info("Terminating program");
+		Platform.exit();
+	}
+	
+	public void close() {
 		try {
 			dataHandler.close();
+			sender.close();
 		} catch (IOException e) {
 			Logger.error(e);
 		}
-		Logger.info("Terminating program");
-		Platform.exit();
 	}
 	
 	/*
