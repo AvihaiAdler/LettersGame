@@ -11,9 +11,10 @@ public class LettersGame extends Application {
 	
 	@Override
 	public void start(Stage stage) throws Exception {
+		stage.close();
 		Logger.info("Starting CirclesGame");
-		app = new MainWindow(stage, "config.json", "./LettersGame.csv");
-		app.show();
+		app = new MainWindow("config.json", "./LettersGame.csv");
+		app.init();
 	}
 	
 	public void stop() {

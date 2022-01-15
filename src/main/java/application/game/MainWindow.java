@@ -8,13 +8,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
-
 import application.dao.ConfigureManager;
 import application.dao.DataOutputHandler;
 import application.dao.DataType;
 import application.dao.StimulusSender;
 import application.gui.LettersPanel;
-import application.gui.Panel;
 import application.util.ScreenGenerator;
 import application.util.ScreenType;
 import javafx.animation.KeyFrame;
@@ -22,17 +20,15 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-public class MainWindow extends StackPane {
+public class MainWindow extends Stage {
 	private int totalGames;
 	private final double width;
 	private final double height;	
@@ -40,8 +36,7 @@ public class MainWindow extends StackPane {
 	private long displayedMilliTime;
 	private long interactedMilliTime;
 	private Timeline timer;
-	private Panel currentScreen;
-	private Stage stage;	
+	private application.gui.Screen currentScreen;	
 	private boolean userAnswer;
 	private Map<String, Object> configValues;
 	private StimulusSender stimSender;
@@ -53,8 +48,7 @@ public class MainWindow extends StackPane {
 	private boolean isBlack;
 	private int blinkCounter;
 	
-	public MainWindow(Stage stage, String configFileName, String dataFileName) throws FileNotFoundException {
-		this.stage = stage;
+	public MainWindow(String configFileName, String dataFileName) throws FileNotFoundException {
 		this.dataHandler = new DataOutputHandler(dataFileName);
 
 		try {
@@ -71,11 +65,11 @@ public class MainWindow extends StackPane {
 		}	
 		
 		var screenDim = Screen.getPrimary().getBounds();
-		width = screenDim.getWidth() / 2;
+		width = screenDim.getWidth();
 		height = screenDim.getHeight();
-		screenGenerator = new ScreenGenerator(width, height);
+		screenGenerator = new ScreenGenerator(width, height, Color.BLACK);
 		
-		stage.addEventFilter(MouseEvent.MOUSE_CLICKED, this::mouseEventHandler);
+		this.addEventFilter(MouseEvent.MOUSE_CLICKED, this::mouseEventHandler);
 	}
 	
 	private void mouseEventHandler(MouseEvent e) {
@@ -84,10 +78,10 @@ public class MainWindow extends StackPane {
 				interactedMilliTime = System.currentTimeMillis();	//get the time of user interaction
 				switch(e.getButton()) {
 				case PRIMARY:
-					userAnswer = ((LettersPanel)currentScreen).getMiddleLetter() == 'V' ? true : false;
+					userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'V' ? true : false;
 					break;
 				case SECONDARY:
-					userAnswer = ((LettersPanel)currentScreen).getMiddleLetter() == 'U' ? true : false;
+					userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'U' ? true : false;
 					break;
 				default:
 					userAnswer = false;
@@ -113,24 +107,24 @@ public class MainWindow extends StackPane {
 		timer.play();
 	}
 	
-	public void show() {
+	public void init() {
 		Logger.info("Constructing main screen");
 		gamesCounter = 0;
 		userAnswer = false;
 		color = Color.BLACK;
 		isBlack = true;
 
-		currentScreen = screenGenerator.createCrossScreen(Color.rgb(220, 220, 220), 40, 8);
-		this.getChildren().add((Pane)currentScreen);
-		
-		stage.setScene(new Scene(this, width, height, color));
-		stage.setMaximized(true);
-		stage.setResizable(false);
-		stage.centerOnScreen();
+		currentScreen = screenGenerator.createCrossScreen(40, 8);
+
+		this.initStyle(StageStyle.UNDECORATED);
+		this.setScene(currentScreen);
+		this.setMaximized(true);
+		this.setResizable(false);
+		this.centerOnScreen();
 		writeCriteria();
 		
 		createTimer(0.5 * 1000);
-		stage.show();
+		this.show();
 	}
 	
 	private void showNext() {
@@ -164,7 +158,7 @@ public class MainWindow extends StackPane {
 			
 			gamesCounter++;
 			
-			currentScreen = screenGenerator.createCrossScreen(Color.rgb(220, 220, 220), 40, 8);
+			currentScreen = screenGenerator.createCrossScreen(40, 8);
 			createTimer(0.5 * 1000);
 			break;
 		}
@@ -172,8 +166,7 @@ public class MainWindow extends StackPane {
 		
 		if(gamesCounter < totalGames) {
 			Logger.info("Switching to " + currentScreen.getType() + " screen");
-			this.getChildren().clear();
-			this.getChildren().add((Pane)currentScreen);	
+			this.setScene(currentScreen);	
 		} else {
 			terminate();			
 		}
@@ -182,13 +175,13 @@ public class MainWindow extends StackPane {
 	private boolean blink() {
 		if(blinkCounter < 5) {
 			if(isBlack) 
-				stage.getScene().setFill(color);
+				this.getScene().setFill(color);
 			else 
-				stage.getScene().setFill(Color.BLACK);
+				this.getScene().setFill(Color.BLACK);
 			isBlack = !isBlack;
 			return true;
 		} else if(blinkCounter == 5) {
-			stage.getScene().setFill(Color.BLACK);
+			this.getScene().setFill(Color.BLACK);
 			createTimer(1.2 * 1000);
 			isBlack = true;
 			return true;
@@ -210,7 +203,7 @@ public class MainWindow extends StackPane {
 		case Letters -> {
 			yield (gamesCounter + 1) + ","
 					+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
-					+ ((LettersPanel) currentScreen).getMiddleLetter() + "," + userAnswer;
+					+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
 		}
 		case Blank -> {
 			yield "";
