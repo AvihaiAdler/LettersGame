@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.tinylog.Logger;
@@ -18,28 +17,28 @@ public class DataOutputHandler {
 
 	public DataOutputHandler(String fileName) {
 		this.fileName = fileName;
-		createDir();
-		
 		this.hasTitle = hasTitle();
+		
 		try {
+			if(!createDir())
+				throw new RuntimeException("Couldn't create a directories " + fileName.substring(0, fileName.lastIndexOf('/')));
 			this.writer = new BufferedWriter(new FileWriter(fileName, hasTitle));
 		} catch (IOException e) {
 			throw new RuntimeException("Something went wrong with" + fileName + ". Close all open windows and try again\n" + e);
 		}
 	}
 
-	private void createDir() {
-		var path = Stream.of(fileName)
+	private boolean createDir() throws IOException {
+		return Stream.of(fileName)
 				.map(str -> str.substring(0, str.lastIndexOf('/')))
-				.collect(Collectors.joining());
-		
-		var file = new File(path);
-		if(!file.exists()) {
-			Logger.info("Creating new directory " + path);
-			var created = file.mkdirs();
-			if(!created)
-				throw new NullPointerException("Couldn't create a directories " + path);
-		}
+				.map(str -> new File(str))
+				.anyMatch(file -> {
+					if(!file.exists()) {
+						Logger.info("Creating new directory [" + file.getName() + "]");
+						return file.mkdirs();
+					}
+					return false;
+				});
 	}
 	
 	/*
