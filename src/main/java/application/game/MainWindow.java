@@ -20,6 +20,8 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -55,6 +57,7 @@ public class MainWindow extends Stage {
 			// reading configuration values
 			configValues = (new ConfigureManager(configFileName)).getProperties();					
 			totalGames = (int)configValues.get("number_of_games");
+			dataHandler.writeLine(getColumnsNames(), DataType.Title);
 			stimSender = new StimulusSender((String)configValues.get("host"), (int)configValues.get("port"));	
 			stimSender.open();			
 		} catch (FileNotFoundException fof) {
@@ -69,10 +72,16 @@ public class MainWindow extends Stage {
 		height = screenDim.getHeight();
 		screenGenerator = new ScreenGenerator(width, height, Color.BLACK);
 		
+		this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyBoardEventHandler);
 		this.addEventFilter(MouseEvent.MOUSE_CLICKED, this::mouseEventHandler);
 	}
 	
-	private void mouseEventHandler(MouseEvent e) {
+	private void keyBoardEventHandler(KeyEvent e) {
+		if(e.isControlDown() && e.getCode() == KeyCode.C)
+			terminate();
+	}
+	
+	private void mouseEventHandler(MouseEvent e) {		
 		if(currentScreen != null && currentScreen.getType() == ScreenType.Letters) {
 			if(e.getButton() == MouseButton.PRIMARY || e.getButton() == MouseButton.SECONDARY) {
 				interactedMilliTime = System.currentTimeMillis();	//get the time of user interaction
@@ -124,7 +133,6 @@ public class MainWindow extends Stage {
 		this.setMaximized(true);
 		this.setResizable(false);
 		this.centerOnScreen();
-		writeCriteria();
 		
 		createTimer(0.5 * 1000);
 		this.show();
@@ -256,20 +264,10 @@ public class MainWindow extends Stage {
 				.split(",");
 	}
 	
-	/*
-	 * Writes criteria columns into the corresponding .csv file
-	 */
-	public void writeCriteria() {	
-		var title = Stream.of(configValues.get("columns"))
+	public String getColumnsNames() {	
+		return Stream.of(configValues.get("columns"))
 				.map(String::valueOf)
 				.map(str -> str.replaceAll("[\\[\\]]", ""))
 				.collect(Collectors.joining(","));
-		
-
-		try {
-			dataHandler.writeLine(title, DataType.Title);
-		} catch (IOException e) {
-			Logger.error(e);
-		}
 	}
 }
