@@ -107,8 +107,11 @@ public class MainWindow extends Stage {
 		timer.play();
 	}
 	
-	public void init() {
-		Logger.info("Constructing main screen");
+	/*
+	 * starts the app. this method has to be called externally
+	 */
+	public void start() {
+		Logger.info("Constructing main window");
 		gamesCounter = 0;
 		userAnswer = false;
 		color = Color.BLACK;

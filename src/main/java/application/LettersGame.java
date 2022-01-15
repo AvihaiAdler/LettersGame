@@ -14,7 +14,7 @@ public class LettersGame extends Application {
 		stage.close();
 		Logger.info("Starting CirclesGame");
 		app = new MainWindow("config.json", "./LettersGame.csv");
-		app.init();
+		app.start();
 	}
 	
 	public void stop() {
