@@ -224,6 +224,7 @@ public class MainWindow extends Stage {
 	}
 	
 	public void terminate() {
+		saveResults("", true);
 		Logger.info("Terminating program");
 		Platform.exit();
 	}
