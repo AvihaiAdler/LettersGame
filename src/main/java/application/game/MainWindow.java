@@ -194,24 +194,25 @@ public class MainWindow extends Stage {
 	
 	private String getData() {
 		Logger.info("Getting data for [" + currentScreen.getType() + "] screen");
-		return switch (currentScreen.getType()) {
-		case Cross -> {
-			var session = "-";
-			if (gamesCounter == 0)
-				session = "start";
-			else if (gamesCounter == totalGames - 1)
-				session = "end";
-			yield session + "," + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ",";
-		}
-		case Letters -> {
-			yield (gamesCounter + 1) + ","
-					+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
-					+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
-		}
-		case Blank -> {
-			yield "";
-		}
-		};
+		return 
+			switch (currentScreen.getType()) {
+				case Cross -> {
+					var session = "-";
+					if (gamesCounter == 0)
+						session = "start";
+					else if (gamesCounter == totalGames - 1)
+						session = "end";
+					yield session + "," + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ",";
+				}
+				case Letters -> {
+					yield (gamesCounter + 1) + ","
+							+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
+							+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
+				}
+				case Blank -> {
+					yield "";
+				}
+			};
 	}
 	
 	public void terminate() {

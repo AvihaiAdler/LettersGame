@@ -2,9 +2,12 @@ package application.dao;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.tinylog.Logger;
 
@@ -15,6 +18,8 @@ public class DataOutputHandler {
 
 	public DataOutputHandler(String fileName) {
 		this.fileName = fileName;
+		createDir();
+		
 		this.hasTitle = hasTitle();
 		try {
 			this.writer = new BufferedWriter(new FileWriter(fileName, hasTitle));
@@ -23,6 +28,20 @@ public class DataOutputHandler {
 		}
 	}
 
+	private void createDir() {
+		var path = Stream.of(fileName)
+				.map(str -> str.substring(0, str.lastIndexOf('/')))
+				.collect(Collectors.joining());
+		
+		var file = new File(path);
+		if(!file.exists()) {
+			Logger.info("Creating new directory " + path);
+			var created = file.mkdirs();
+			if(!created)
+				throw new NullPointerException("Couldn't create a directories " + path);
+		}
+	}
+	
 	/*
 	 * check if the file exists. if not: create one. if it does exists: check if it
 	 * contains any value: if it does don't write a title
