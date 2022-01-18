@@ -24,7 +24,8 @@ public class ScreenGenerator {
 	 * Creates a screen with a sequence of 5 'V', 'W' letters
 	 */
 	public Screen createLettersScreen(String[] possibleStrings) {
-		var lettersPanel = new LettersPanel(possibleStrings[random.nextInt(possibleStrings.length)].trim());
+	  var index = random.nextInt(possibleStrings.length);
+		var lettersPanel = new LettersPanel(possibleStrings[index]);
 		lettersPanel.styleText();
 		return new Screen(lettersPanel, ScreenType.Letters, width, height, bgColor);
 	}

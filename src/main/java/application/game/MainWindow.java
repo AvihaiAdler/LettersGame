@@ -1,10 +1,8 @@
 package application.game;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
@@ -13,6 +11,7 @@ import application.dao.DataOutputHandler;
 import application.dao.DataType;
 import application.dao.StimulusSender;
 import application.gui.LettersPanel;
+import application.util.ConfigValues;
 import application.util.ScreenGenerator;
 import application.util.ScreenType;
 import javafx.animation.KeyFrame;
@@ -31,7 +30,6 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 public class MainWindow extends Stage {
-	private int totalGames;
 	private final double width;
 	private final double height;	
 	private int gamesCounter;
@@ -40,7 +38,7 @@ public class MainWindow extends Stage {
 	private Timeline timer;
 	private application.gui.Screen currentScreen;	
 	private boolean userAnswer;
-	private Map<String, Object> configValues;
+	private ConfigValues configValues;
 	private StimulusSender stimSender;
 	private final DataOutputHandler dataHandler;
 	private final ScreenGenerator screenGenerator;
@@ -50,22 +48,21 @@ public class MainWindow extends Stage {
 	private boolean isBlack;
 	private int blinkCounter;
 	
-	public MainWindow(String configFileName, String dataFileName) throws FileNotFoundException {
+	public MainWindow(String configFileName, String dataFileName) throws Exception {
 		this.dataHandler = new DataOutputHandler(dataFileName);
 
 		try {
 			// reading configuration values
 			configValues = (new ConfigureManager(configFileName)).getProperties();					
-			totalGames = (int)configValues.get("number_of_games");
 			dataHandler.writeLine(getColumnsNames(), DataType.Title);
-			stimSender = new StimulusSender((String)configValues.get("host"), (int)configValues.get("port"));	
+			stimSender = new StimulusSender(configValues.getHost(), configValues.getPort());	
 			stimSender.open();			
-		} catch (FileNotFoundException fof) {
-			Logger.error(fof);
-			throw fof;
 		} catch (IOException io) {
 			Logger.error(io);
-		}	
+		}	catch (Exception e) {
+		  Logger.error(e);
+		  throw e;
+		}
 		
 		var screenDim = Screen.getPrimary().getBounds();
 		width = screenDim.getWidth();
@@ -143,7 +140,7 @@ public class MainWindow extends Stage {
 		case Cross:
 			saveResults(getData(), false);
 			
-			currentScreen = screenGenerator.createLettersScreen(getPossibleStrings());
+			currentScreen = screenGenerator.createLettersScreen(configValues.getStrings());
 			displayedMilliTime = System.currentTimeMillis();
 			interactedMilliTime = 0;
 			createTimer(0.8 * 1000);
@@ -175,7 +172,7 @@ public class MainWindow extends Stage {
 		}
 		
 		
-		if(gamesCounter < totalGames) {
+		if(gamesCounter < configValues.getNumOfGames()) {
 			Logger.info("Switching to " + currentScreen.getType() + " screen");
 			this.setScene(currentScreen);	
 		} else {
@@ -208,7 +205,7 @@ public class MainWindow extends Stage {
 					var session = "-";
 					if (gamesCounter == 0)
 						session = "start";
-					else if (gamesCounter == totalGames - 1)
+					else if (gamesCounter == configValues.getNumOfGames() - 1)
 						session = "end";
 					yield session + "," + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ",";
 				}
@@ -252,23 +249,9 @@ public class MainWindow extends Stage {
 		}
 	}
 	
-	private String[] getPossibleStrings() {
-		return Stream.of(configValues.get("possible_strings"))
-				.map(potential -> {
-					if(potential == null)
-						throw new NullPointerException("Encountered a problem to load \"possible_strings\"");
-					return potential;
-				})
-				.map(String::valueOf)
-				.map(str -> str.replaceAll("[\\[\\]]", ""))
-				.collect(Collectors.joining())
-				.split(",");
-	}
-	
 	public String getColumnsNames() {	
-		return Stream.of(configValues.get("columns"))
+		return Stream.of(configValues.getColumns())
 				.map(String::valueOf)
-				.map(str -> str.replaceAll("[\\[\\]]", ""))
 				.collect(Collectors.joining(","));
 	}
 }

@@ -1,5 +1,5 @@
 {
-	"number_of_games": 3,
+	"numOfGames": 3,
 	"host": "localhost",
 	"port": 15361,
 	"columns": 
@@ -11,7 +11,7 @@
 		"middle letter",
 		"User answer"
 	],
-	"possible_strings":
+	"strings":
 	[
 		"UUUUU",
 		"UUVUU",
