@@ -1,6 +1,7 @@
 package application.game;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
@@ -131,6 +132,7 @@ public class MainWindow extends Stage {
 		this.setResizable(false);
 		this.centerOnScreen();
 		
+		signal(111, Instant.now().toEpochMilli());
 		createTimer(0.5 * 1000);
 		this.show();
 	}
@@ -147,6 +149,7 @@ public class MainWindow extends Stage {
 			break;
 		case Letters:
 			saveResults(getData(), false);
+			signal(333, Instant.now().toEpochMilli());
 			
 			currentScreen = screenGenerator.createBlankPanel();
 			createTimer(0.2 * 1000);
@@ -248,6 +251,19 @@ public class MainWindow extends Stage {
 			Logger.error(e);
 		}
 	}
+	
+  /*
+   * send a signal to a server. 
+   * 111 - app start
+   * 333 - test signal
+   */
+  public void signal(long signal, long timeStamp) {
+    try {
+      stimSender.send(signal, timeStamp);
+    } catch (IOException e) {
+      Logger.error(e);
+    }
+  }
 	
 	public String getColumnsNames() {	
 		return Stream.of(configValues.getColumns())
