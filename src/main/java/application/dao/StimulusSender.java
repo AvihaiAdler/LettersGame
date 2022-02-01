@@ -16,8 +16,6 @@ import org.tinylog.Logger;
 public class StimulusSender {
 	private String host;
 	private int port;
-	
-	// define m_clientSocket and m_outputStream
 	private Socket clientSocket;
 	private DataOutputStream outputStream;
 
@@ -32,7 +30,7 @@ public class StimulusSender {
 			Logger.info("Opening socket on: " + host + ":" + port);
 			clientSocket = new Socket(host, port);
 			Logger.info("Opening a data stream for port " + clientSocket.getPort());
-			outputStream = new DataOutputStream(clientSocket.getOutputStream());			
+			outputStream = new DataOutputStream(clientSocket.getOutputStream());	
 		} catch (IOException e) {
 			throw new IOException("Something went wrong while trying to connect to port " + this.port + "\n" + e);
 		}
@@ -42,10 +40,9 @@ public class StimulusSender {
 	public void close() throws IOException {
 		if(outputStream != null) {
 			outputStream.flush();
-			Logger.info("Closing data stream for the socket");
+			Logger.info("Closing data stream for socket");
 			outputStream.close();			
 		}
-		
 		if(clientSocket != null) {
 			Logger.info("Cosing socket:" + port);
 			clientSocket.close();			
@@ -54,14 +51,16 @@ public class StimulusSender {
 
 	// Send stimulation with a timestamp.
 	public void send(long stimulation, long timestamp) throws IOException {
-		var b = ByteBuffer.allocate(Long.BYTES *2);
+		var b = ByteBuffer.allocate(24);
 		b.order(ByteOrder.LITTLE_ENDIAN); // Assumes AS runs on LE architecture
-		b.putLong(stimulation); // Stimulation id
+		b.putLong(0);
+		b.putLong(stimulation); 
 		b.putLong(timestamp); 
 		
 		if(clientSocket != null)
 		  Logger.info("Writing to socket on port " + clientSocket.getPort());
-		Stream.of(b).forEach(Logger::info);
+
+		Stream.of(b).forEach(Logger::info);		
 		
 		if(outputStream != null)
 		  outputStream.write(b.array());

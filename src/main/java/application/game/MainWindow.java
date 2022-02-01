@@ -1,7 +1,6 @@
 package application.game;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
@@ -76,11 +75,17 @@ public class MainWindow extends Stage {
 	
 	private void keyBoardEventHandler(KeyEvent e) {
 		if(e.isControlDown() && e.getCode() == KeyCode.C)
-			terminate();
+			terminate(true);
+		
+		if(currentScreen.getType() == ScreenType.Welcome)
+		  showNext();
 	}
 	
-	private void mouseEventHandler(MouseEvent e) {		
-		if(currentScreen != null && currentScreen.getType() == ScreenType.Letters) {
+	private void mouseEventHandler(MouseEvent e) {
+	  if(currentScreen.getType() == ScreenType.Welcome)
+	    showNext();
+	  
+		if(currentScreen.getType() == ScreenType.Letters) {
 			if(e.getButton() == MouseButton.PRIMARY || e.getButton() == MouseButton.SECONDARY) {
 				interactedMilliTime = System.currentTimeMillis();	//get the time of user interaction
 				switch(e.getButton()) {
@@ -124,64 +129,67 @@ public class MainWindow extends Stage {
 		color = Color.BLACK;
 		isBlack = true;
 
-		currentScreen = screenGenerator.createCrossScreen(40, 8);
-
+		currentScreen = screenGenerator.createWelcomeScreen();
+		
 		this.initStyle(StageStyle.UNDECORATED);
 		this.setScene(currentScreen);
 		this.setMaximized(true);
 		this.setResizable(false);
 		this.centerOnScreen();
 		
-		signal(111, Instant.now().toEpochMilli());
-		createTimer(0.5 * 1000);
+		signal(100L, 0L);
 		this.show();
 	}
 	
-	private void showNext() {
-		switch (currentScreen.getType()) {
-		case Cross:
-			saveResults(getData(), false);
-			
-			currentScreen = screenGenerator.createLettersScreen(configValues.getStrings());
-			displayedMilliTime = System.currentTimeMillis();
-			interactedMilliTime = 0;
-			createTimer(0.8 * 1000);
-			break;
-		case Letters:
-			saveResults(getData(), false);
-			signal(333, Instant.now().toEpochMilli());
-			
-			currentScreen = screenGenerator.createBlankPanel();
-			createTimer(0.2 * 1000);
-			
-			// blink params
-			color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
-			userAnswer = false;
-			blinkCounter = 0;
-			break;
-		case Blank:
-			var shouldBreak = blink();
-			blinkCounter++;
-			if(shouldBreak)
-				break;
-			
-			saveResults(getData(), true);
-			
-			gamesCounter++;
-			
-			currentScreen = screenGenerator.createCrossScreen(40, 8);
-			createTimer(0.5 * 1000);
-			break;
-		}
-		
-		
-		if(gamesCounter < configValues.getNumOfGames()) {
-			Logger.info("Switching to " + currentScreen.getType() + " screen");
-			this.setScene(currentScreen);	
-		} else {
-			terminate();			
-		}
-	}
+  private void showNext() {
+    switch (currentScreen.getType()) {
+      case Welcome:        
+        currentScreen = screenGenerator.createCrossScreen(40, 8);
+        createTimer(0.5 * 1000);
+        break;
+      case Cross:
+        saveResults(getData(), false);
+
+        currentScreen = screenGenerator.createLettersScreen(configValues.getStrings());
+        signal(5000L, 0L);
+        displayedMilliTime = System.currentTimeMillis();
+        interactedMilliTime = 0;
+        createTimer(0.8 * 1000);
+        break;
+      case Letters:
+        saveResults(getData(), false);
+        signal(7000L, 0L);
+
+        currentScreen = screenGenerator.createBlankPanel();
+        createTimer(0.2 * 1000);
+
+        // blink params
+        color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
+        userAnswer = false;
+        blinkCounter = 0;
+        break;
+      case Blank:
+        var shouldBreak = blink();
+        blinkCounter++;
+        if (shouldBreak)
+          break;
+
+        saveResults(getData(), true);
+
+        gamesCounter++;
+
+        currentScreen = screenGenerator.createCrossScreen(40, 8);
+        createTimer(0.5 * 1000);
+        break;
+    }
+
+    if (gamesCounter < configValues.getNumOfGames()) {
+      Logger.info("Switching to " + currentScreen.getType() + " screen");
+      this.setScene(currentScreen);
+    } else {
+      terminate(false);
+    }
+  }
 	
 	private boolean blink() {
 		if(blinkCounter < 5) {
@@ -217,15 +225,17 @@ public class MainWindow extends Stage {
 							+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
 							+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
 				}
-				case Blank -> {
+				default -> {
 					yield "";
 				}
 			};
 	}
 	
-	public void terminate() {
-		saveResults("", true);
-		signal(222, Instant.now().toEpochMilli());
+	public void terminate(boolean forced) {
+	  if(forced)
+	    saveResults("", true);
+	  
+		signal(200L, 0L);
 		Logger.info("Terminating program");
 		Platform.exit();
 	}
@@ -255,9 +265,10 @@ public class MainWindow extends Stage {
 	
   /*
    * send a signal to a server. 
-   * 111 - app start
-   * 222 - app shutdown
-   * 333 - test signal
+   * 100 - app start
+   * 200 - app shutdown
+   * 5000 - stim for when the user chooses a the letter
+   * 7000 - stim for when the user gets the blinking screen
    */
   public void signal(long signal, long timeStamp) {
     try {

@@ -4,6 +4,7 @@ import java.util.Random;
 import application.gui.CrossPanel;
 import application.gui.LettersPanel;
 import application.gui.Screen;
+import application.gui.WelcomePanel;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
@@ -40,5 +41,9 @@ public class ScreenGenerator {
 
 	public Screen createBlankPanel() {
 		return new Screen(new StackPane(), ScreenType.Blank, width, height, bgColor);
+	}
+	
+	public Screen createWelcomeScreen() {
+	  return new Screen(new WelcomePanel(width), ScreenType.Welcome, width, height, bgColor);
 	}
 }

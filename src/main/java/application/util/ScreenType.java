@@ -1,6 +1,7 @@
 package application.util;
 
 public enum ScreenType {
+  Welcome("welcome"),
 	Cross("cross"),
 	Letters("letters"),
 	Blank("blank");
