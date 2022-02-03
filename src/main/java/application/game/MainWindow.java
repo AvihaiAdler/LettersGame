@@ -6,10 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
-import application.dao.ConfigureManager;
-import application.dao.DataOutputHandler;
-import application.dao.DataType;
-import application.dao.StimulusSender;
+
+import application.dal.ConfigureManager;
+import application.dal.DataOutputHandler;
+import application.dal.DataType;
+import application.dal.StimulusSender;
 import application.gui.LettersPanel;
 import application.util.ConfigValues;
 import application.util.ScreenGenerator;
