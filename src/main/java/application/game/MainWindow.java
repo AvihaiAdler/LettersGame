@@ -3,6 +3,7 @@ package application.game;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
@@ -40,11 +41,7 @@ public class MainWindow extends Stage {
 	private StimulusSender stimSender;
 	private final DataOutputHandler dataHandler;
 	private final ScreenGenerator screenGenerator;
-	
-	// blink params
-	private Color color;
-	private boolean isBlack;
-	private int blinkCounter;
+	private final Random rand;
 	
 	public MainWindow(String configFileName, String dataFileName) throws Exception {
 		this.dataHandler = new DataOutputHandler(dataFileName);
@@ -65,6 +62,7 @@ public class MainWindow extends Stage {
 		var screenDim = Screen.getPrimary().getBounds();
 		width = screenDim.getWidth();
 		height = screenDim.getHeight();
+		rand = new Random();
 		screenGenerator = new ScreenGenerator(width, height, Color.BLACK);
 		
 		this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyBoardEventHandler);
@@ -118,8 +116,6 @@ public class MainWindow extends Stage {
 		Logger.info("Constructing main window");
 		gamesCounter = 0;
 		userAnswer = false;
-		color = Color.BLACK;
-		isBlack = true;
 
 		currentScreen = screenGenerator.createWelcomeScreen();
 		
@@ -152,25 +148,20 @@ public class MainWindow extends Stage {
         saveResults(getData(), false);
         signal(7000L, 0L);
 
-        currentScreen = screenGenerator.createBlankPanel();
-        createTimer(0.2 * 1000);
-
-        // blink params
-        color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
+        var color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
+        
+        var feedback = userAnswer ? "צדקת!" : "טעית!";
+        currentScreen = screenGenerator.createFeedbackScreen(feedback, color);
         userAnswer = false;
-        blinkCounter = 0;
-        break;
-      case Blank:
-        var shouldBreak = blink();
-        blinkCounter++;
-        if (shouldBreak)
-          break;
-
+        
+        createTimer((rand.nextDouble(0.2 - 0.06) + 0.06) * 10000);
+        break;        
+      case Feedback:
         saveResults(getData(), true);
 
         gamesCounter++;
-
         currentScreen = screenGenerator.createCrossScreen(40, 8);
+
         createTimer(0.5 * 1000);
         break;
     }
@@ -182,23 +173,6 @@ public class MainWindow extends Stage {
       terminate(false);
     }
   }
-	
-	private boolean blink() {
-		if(blinkCounter < 5) {
-			if(isBlack) 
-				this.getScene().setFill(color);
-			else 
-				this.getScene().setFill(Color.BLACK);
-			isBlack = !isBlack;
-			return true;
-		} else if(blinkCounter == 5) {
-			this.getScene().setFill(Color.BLACK);
-			createTimer(1.2 * 1000);
-			isBlack = true;
-			return true;
-		}
-		return false;
-	}
 	
 	private String getData() {
 		Logger.info("Getting data for [" + currentScreen.getType() + "] screen");

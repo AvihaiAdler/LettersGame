@@ -4,7 +4,7 @@ public enum ScreenType {
   Welcome("welcome"),
 	Cross("cross"),
 	Letters("letters"),
-	Blank("blank");
+	Feedback("feedback");
 	
 	public final String type;
 	private ScreenType(String type) {

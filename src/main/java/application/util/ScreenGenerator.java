@@ -5,7 +5,6 @@ import application.gui.CrossPanel;
 import application.gui.LettersPanel;
 import application.gui.Screen;
 import application.gui.WelcomePanel;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public class ScreenGenerator {
@@ -30,6 +29,12 @@ public class ScreenGenerator {
 		lettersPanel.styleText();
 		return new Screen(lettersPanel, ScreenType.Letters, width, height, bgColor);
 	}
+	
+	public Screen createFeedbackScreen(String feedback, Color color) {
+	  var feedbackScreen = new LettersPanel(feedback);
+	  feedbackScreen.styleText(color);
+    return new Screen(feedbackScreen, ScreenType.Feedback, width, height, bgColor);
+	}
 
 	/*
 	 * Creates a screen with a cross in the middle of it
@@ -37,10 +42,6 @@ public class ScreenGenerator {
 	public Screen createCrossScreen(int proportion, int lineWidth) {
 		var screen = new CrossPanel(Color.rgb(220, 220, 220), proportion, lineWidth, height, height);
 		return new Screen(screen, ScreenType.Cross, width, height, bgColor);
-	}
-
-	public Screen createBlankPanel() {
-		return new Screen(new StackPane(), ScreenType.Blank, width, height, bgColor);
 	}
 	
 	public Screen createWelcomeScreen() {

@@ -9,23 +9,29 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
 public class LettersPanel extends StackPane {
-	private final Text text;
-	private final char middleLetter;
+  private final Text text;
+  private final char middleLetter;
 
-	public LettersPanel(String text) {
-		this.text = new Text(text);
-		middleLetter = text.charAt(text.length() / 2);
+  public LettersPanel(String text) {
+    this.text = new Text(text);
+    middleLetter = text.charAt(text.length() / 2);
 
-		this.getChildren().add(this.text);
-	}
+    this.getChildren().add(this.text);
+  }
 
-	public void styleText() {
-		text.setFont(Font.font("Roboto", FontWeight.BOLD, FontPosture.REGULAR, 80));
-		text.setFill(Color.rgb(220, 220, 220));
-		text.setTextAlignment(TextAlignment.CENTER);
-	}
+  public void styleText() {
+    text.setFont(Font.font("Roboto", FontWeight.BOLD, FontPosture.REGULAR, 80));
+    text.setFill(Color.rgb(220, 220, 220));
+    text.setTextAlignment(TextAlignment.CENTER);
+  }
 
-	public char getMiddleLetter() {
-		return middleLetter;
-	}
+  public void styleText(Color color) {
+    text.setFont(Font.font("Roboto", FontWeight.BOLD, FontPosture.REGULAR, 80));
+    text.setFill(color);
+    text.setTextAlignment(TextAlignment.CENTER);
+  }
+
+  public char getMiddleLetter() {
+    return middleLetter;
+  }
 }
