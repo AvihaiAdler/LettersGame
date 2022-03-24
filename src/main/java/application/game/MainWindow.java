@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.tinylog.Logger;
-
 import application.dal.ConfigureManager;
 import application.dal.DataOutputHandler;
 import application.dal.DataType;
@@ -22,8 +21,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -71,7 +68,6 @@ public class MainWindow extends Stage {
 		screenGenerator = new ScreenGenerator(width, height, Color.BLACK);
 		
 		this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyBoardEventHandler);
-		this.addEventFilter(MouseEvent.MOUSE_CLICKED, this::mouseEventHandler);
 	}
 	
 	private void keyBoardEventHandler(KeyEvent e) {
@@ -80,29 +76,24 @@ public class MainWindow extends Stage {
 		
 		if(currentScreen.getType() == ScreenType.Welcome)
 		  showNext();
-	}
-	
-	private void mouseEventHandler(MouseEvent e) {
-	  if(currentScreen.getType() == ScreenType.Welcome)
-	    showNext();
-	  
-		if(currentScreen.getType() == ScreenType.Letters) {
-			if(e.getButton() == MouseButton.PRIMARY || e.getButton() == MouseButton.SECONDARY) {
-				interactedMilliTime = System.currentTimeMillis();	//get the time of user interaction
-				switch(e.getButton()) {
-				case PRIMARY:
-					userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'V' ? true : false;
-					break;
-				case SECONDARY:
-					userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'U' ? true : false;
-					break;
-				default:
-					userAnswer = false;
-					break;
-				}
-				showNext();
-			}
-		}
+		
+    if (currentScreen.getType() == ScreenType.Letters) {
+      if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.RIGHT) {
+        interactedMilliTime = System.currentTimeMillis(); //get the time of user interaction
+        switch(e.getCode()) {
+          case RIGHT:
+            userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'V' ? true : false;
+            break;
+          case LEFT:
+            userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'U' ? true : false;
+            break;
+          default:
+            userAnswer = false;
+            break;
+          }
+        showNext();
+      }
+    }
 	}
 	
 	private void createTimer(double millis) {
