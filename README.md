@@ -5,8 +5,8 @@ Compilation instructions:
 	- make sure to set up an Environment variable (windows users).
 	- a short guide in here: https://maven.apache.org/guides/getting-started/windows-prerequisites.html
 2. Import as a Maven project
-3. Left click on the project -> Maven -> update project
-4. To build, navigate the the project root directory via the terminal and use this command:  
+3. Left-click on the project -> Maven -> update project
+4. To build, navigate the project root directory via the terminal and use this command:  
 	`mvn clean compile assembly:single`
 5. A LettersGame.jar file will appear in target/
 

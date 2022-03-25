@@ -15,10 +15,6 @@ public class ConfigureManager {
 
 	public ConfigValues getProperties() throws Exception {
 		var json = this.getClass().getClassLoader().getResourceAsStream(fileName);
-		try {
-			return jackson.readValue(json, ConfigValues.class);
-		} catch (Exception e) {
-			throw e;
-		}
+		return jackson.readValue(json, ConfigValues.class);
 	}
 }

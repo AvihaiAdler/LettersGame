@@ -7,7 +7,7 @@ public enum ScreenType {
 	Feedback("feedback");
 	
 	public final String type;
-	private ScreenType(String type) {
+	ScreenType(String type) {
 		this.type = type;
 	}
 	

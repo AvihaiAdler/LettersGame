@@ -6,7 +6,7 @@ public enum DataType {
 	
 	private final String type;
 	
-	private DataType(String type) {
+	DataType(String type) {
 		this.type = type;
 	}
 	

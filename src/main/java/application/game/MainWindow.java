@@ -29,8 +29,6 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 public class MainWindow extends Stage {
-	private final double width;
-	private final double height;	
 	private int gamesCounter;
 	private long displayedMilliTime;
 	private long interactedMilliTime;
@@ -59,11 +57,9 @@ public class MainWindow extends Stage {
 		  throw e;
 		}
 		
-		var screenDim = Screen.getPrimary().getBounds();
-		width = screenDim.getWidth();
-		height = screenDim.getHeight();
 		rand = new Random();
-		screenGenerator = new ScreenGenerator(width, height, Color.BLACK);
+		var screenDim = Screen.getPrimary().getBounds();
+		screenGenerator = new ScreenGenerator(screenDim.getWidth(), screenDim.getHeight(), Color.BLACK);
 		
 		this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyBoardEventHandler);
 	}
@@ -78,33 +74,21 @@ public class MainWindow extends Stage {
     if (currentScreen.getType() == ScreenType.Letters) {
       if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.RIGHT) {
         interactedMilliTime = System.currentTimeMillis(); //get the time of user interaction
-        switch(e.getCode()) {
-          case RIGHT:
-            userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'V' ? true : false;
-            break;
-          case LEFT:
-            userAnswer = ((LettersPanel)currentScreen.getRoot()).getMiddleLetter() == 'U' ? true : false;
-            break;
-          default:
-            userAnswer = false;
-            break;
-          }
+		  switch (e.getCode()) {
+			  case RIGHT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'V';
+			  case LEFT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'U';
+			  default -> userAnswer = false;
+		  }
         showNext();
       }
     }
 	}
 	
 	private void createTimer(double millis) {
-		Logger.info("creating a new timer with " + Double.toString(millis) + "ms delay");
+		Logger.info("creating a new timer with " + millis + "ms delay");
 		if (timer != null)
 			timer.stop();
-		timer = new Timeline(new KeyFrame(Duration.millis(millis), new EventHandler<ActionEvent>() {
-
-			@Override
-			public void handle(ActionEvent e) {
-				showNext();
-			}
-		}));
+		timer = new Timeline(new KeyFrame(Duration.millis(millis), e -> showNext()));
 		timer.setCycleCount(Timeline.INDEFINITE);
 		timer.play();
 	}
@@ -130,41 +114,35 @@ public class MainWindow extends Stage {
 	}
 	
   private void showNext() {
-    switch (currentScreen.getType()) {
-      case Welcome:        
-        currentScreen = screenGenerator.createCrossScreen(40, 8);
-        createTimer(0.5 * 1000);
-        break;
-      case Cross:
-        saveResults(getData(), false);
-
-        currentScreen = screenGenerator.createLettersScreen(configValues.getStrings());
-        signal(5000L, 0L);
-        displayedMilliTime = System.currentTimeMillis();
-        interactedMilliTime = 0;
-        createTimer(0.8 * 1000);
-        break;
-      case Letters:
-        saveResults(getData(), false);
-        signal(7000L, 0L);
-
-        var color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
-        
-        var feedback = userAnswer ? "צדקת!" : "טעית!";
-        currentScreen = screenGenerator.createFeedbackScreen(feedback, color);
-        userAnswer = false;
-        
-        createTimer((rand.nextDouble(0.2 - 0.06) + 0.06) * 10000);
-        break;        
-      case Feedback:
-        saveResults(getData(), true);
-
-        gamesCounter++;
-        currentScreen = screenGenerator.createCrossScreen(40, 8);
-
-        createTimer(0.5 * 1000);
-        break;
-    }
+	  switch (currentScreen.getType()) {
+		  case Welcome -> {
+			  currentScreen = screenGenerator.createCrossScreen(40, 8);
+			  createTimer(0.5 * 1000);
+		  }
+		  case Cross -> {
+			  saveResults(getData(), false);
+			  currentScreen = screenGenerator.createLettersScreen(configValues.getStrings());
+			  signal(5000L, 0L);
+			  displayedMilliTime = System.currentTimeMillis();
+			  interactedMilliTime = 0;
+			  createTimer(0.8 * 1000);
+		  }
+		  case Letters -> {
+			  saveResults(getData(), false);
+			  signal(7000L, 0L);
+			  var color = userAnswer ? Color.DARKGREEN : Color.DARKRED;
+			  var feedback = userAnswer ? "צדקת!" : "טעית!";
+			  currentScreen = screenGenerator.createFeedbackScreen(feedback, color);
+			  userAnswer = false;
+			  createTimer((rand.nextDouble(0.2 - 0.06) + 0.06) * 10000);
+		  }
+		  case Feedback -> {
+			  saveResults(getData(), true);
+			  gamesCounter++;
+			  currentScreen = screenGenerator.createCrossScreen(40, 8);
+			  createTimer(0.5 * 1000);
+		  }
+	  }
 
     if (gamesCounter < configValues.getNumOfGames()) {
       Logger.info("Switching to " + currentScreen.getType() + " screen");
@@ -186,14 +164,10 @@ public class MainWindow extends Stage {
 						session = "end";
 					yield session + "," + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ",";
 				}
-				case Letters -> {
-					yield (gamesCounter + 1) + ","
-							+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
-							+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
-				}
-				default -> {
-					yield "";
-				}
+				case Letters -> (gamesCounter + 1) + ","
+						+ (interactedMilliTime == 0 ? "no response" : (interactedMilliTime - displayedMilliTime)) + ","
+						+ ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() + "," + userAnswer;
+				default -> "";
 			};
 	}
 	
