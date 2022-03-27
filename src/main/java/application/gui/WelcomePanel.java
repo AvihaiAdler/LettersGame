@@ -32,18 +32,17 @@ public class WelcomePanel extends BorderPane {
   }
   
   private void construct() {
-    style("Welcome!", welcome, 40, TextAlignment.CENTER);
+    style("ברוך הבא!", welcome, 40, TextAlignment.CENTER);
     String text = """
-            In this game you'll be presented with a string of 5 letters for a short period of time.
-            Your task is to identify the letter in the middle of the string.
-            Press the LEFT MOUSE BUTTON if the letter is V.
-            Press the RIGHT MOUSE BUTTON if the letter is U.
-            You can make your pick as soon as the string appears on screen.
-            
-            Good luck!
-            """;
-    style(text, instructions, 30, TextAlignment.JUSTIFY);
-    style("Press any key to continue", last, 40, TextAlignment.CENTER);
+                  במשחק זה יוצגו לפניך מחרוזות בנות 5 אותיות לזמן קצר.
+                  עליך לזהות את האות האמצעית.
+                  לחץ על החץ השמאלי / על האות V במידה והאות האמצעית היא V.
+                  לחץ על החץ הימני / על האות U במידה והאות האמצעית היא U.
+
+                  בהצלחה!
+                  """;
+    style(text, instructions, 30, TextAlignment.RIGHT);
+    style("לחץ על מקש כלשהו כדי להמשיך", last, 40, TextAlignment.CENTER);
   }
   
   private void style(String str, Text text, int fontSize, TextAlignment alignment) {

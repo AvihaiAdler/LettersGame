@@ -18,8 +18,6 @@ import application.util.ScreenType;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -72,15 +70,28 @@ public class MainWindow extends Stage {
 		  showNext();
 		
     if (currentScreen.getType() == ScreenType.Letters) {
-      if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.RIGHT) {
-        interactedMilliTime = System.currentTimeMillis(); //get the time of user interaction
-		  switch (e.getCode()) {
-			  case RIGHT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'V';
-			  case LEFT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'U';
-			  default -> userAnswer = false;
-		  }
-        showNext();
+      switch (e.getCode()) {
+        case LEFT, V -> {
+          interactedMilliTime = System.currentTimeMillis(); // get the time of user interaction
+          userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'V';
+          showNext();
+        }
+        case RIGHT, U -> {
+          interactedMilliTime = System.currentTimeMillis(); // get the time of user interaction
+          userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'U';
+          showNext();
+        }
+        default -> userAnswer = false;
       }
+//      if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.RIGHT) {
+//        interactedMilliTime = System.currentTimeMillis(); // get the time of user interaction
+//        switch (e.getCode()) {
+//          case RIGHT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'V';
+//          case LEFT -> userAnswer = ((LettersPanel) currentScreen.getRoot()).getMiddleLetter() == 'U';
+//          default -> userAnswer = false;
+//        }
+//        showNext();
+//      }
     }
 	}
 	
